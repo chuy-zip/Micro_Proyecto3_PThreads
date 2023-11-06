@@ -13,7 +13,7 @@ pthread_mutex_t m;
 // Global Variables
 int swimmingStyle;
 int poolLength;
-sem_t sem1;
+sem_t sem1, sem2;
 
 struct Swimmer
 {
@@ -25,28 +25,55 @@ struct Swimmer
     double breastStrokeSpeed; // m/s
     double selectedSpeed; //This will change depending on the seped selected
 
-    double swimmingTime; // seconds
+    double swimmingTime; // seconds for the swimmer to end the race
 };
 
 Swimmer SwimmerList[6], buffer[1];
 
+//This method works as a productor also.
 void* SwimmingTime (void *arg) 
 {
     Swimmer *swimmer;
 
     swimmer = (Swimmer *) arg;
+    
+    double time;
 
+    time = (poolLength / swimmer->selectedSpeed);
+    swimmer->swimmingTime = time;
+
+    usleep(time * 900000);
+    sem_wait(&sem1);
     pthread_mutex_lock(&m);
-    cout << swimmer->name << ", Selected speed: " << swimmer->selectedSpeed << endl;
+    buffer[0] = *swimmer;
     pthread_mutex_unlock(&m);
     
+    sem_post(&sem2);
+    
+
     pthread_exit(NULL);
+    return 0;
 }
+
+void Lee(int place)
+{
+    sem_wait(&sem2);
+    pthread_mutex_lock(&m);
+    cout << place << ". " << buffer[0].name 
+         << " ha terminado con un tiempo de " << buffer[0].swimmingTime 
+         << " segundos." << endl;
+
+    pthread_mutex_unlock(&m);
+    sem_post(&sem1);
+} 
 
 int main(int argc, char *argv[])
 {
 
     pthread_t thread[6];
+    pthread_mutex_init(&m,NULL);
+    sem_init(&sem1, 0, 1);
+    sem_init(&sem2, 0, 0);
 
     // Main Menu
     printf("***************************\n");
@@ -65,7 +92,7 @@ int main(int argc, char *argv[])
     cin >> swimmingStyle;
     cout << endl;
 
-    cout << "Ingresa la longitud de la piscina:";
+    cout << "Ingresa la longitud de la piscina (metros): ";
     cin >> poolLength;
     cout << endl;
 
@@ -101,15 +128,22 @@ int main(int argc, char *argv[])
         }
     }
 
+    cout << "Resultados de la carrera: " << endl;
+
     for(int i = 0; i < 6; i++){
-        
-        Swimmer nSwimmer = SwimmerList[i];
         pthread_create(&thread[i], NULL, SwimmingTime, (void *)&SwimmerList[i]);
     }
+
+    //Consumidor
+    for(int j = 0; j < 6; ++j)
+    {
+        Lee(j + 1);
+    }
+
+    cout << endl;
 
     for (int i = 0; i < 6; i++)
     {
         pthread_join(thread[i], NULL);
     }
-
 }
