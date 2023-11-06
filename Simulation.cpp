@@ -15,6 +15,24 @@ int swimmingStyle;
 int poolLength;
 sem_t sem1, sem2;
 
+/**
+ * The above code defines a struct called "Swimmer" with various properties related to swimming speed
+ * and time.
+ * @property {string} name - The name of the swimmer.
+ * @property {double} freeStyleSpeed - The speed at which the swimmer can swim using the freestyle
+ * stroke, measured in meters per second (m/s).
+ * @property {double} backStrokeSpeed - The backStrokeSpeed property represents the speed at which the
+ * swimmer can swim using the backstroke technique, measured in meters per second (m/s).
+ * @property {double} butterflyStyleSpeed - The speed at which the swimmer can swim using the butterfly
+ * stroke, measured in meters per second.
+ * @property {double} breastStrokeSpeed - The breastStrokeSpeed property represents the speed at which
+ * the swimmer can swim using the breaststroke technique, measured in meters per second (m/s).
+ * @property {double} selectedSpeed - The selectedSpeed property is used to store the speed selected by
+ * the swimmer. This value will change depending on the speed selected by the swimmer for a particular
+ * race.
+ * @property {double} swimmingTime - The swimmingTime property represents the time it takes for the
+ * swimmer to complete the race, measured in seconds.
+ */
 struct Swimmer
 {
     string name;
@@ -31,6 +49,17 @@ struct Swimmer
 Swimmer SwimmerList[6], buffer[1];
 
 //This method works as a productor also.
+/**
+ * The function calculates the swimming time for a swimmer, updates the swimmer's swimming time, and
+ * adds the swimmer to a buffer.
+ * 
+ * @param arg The arg parameter is a void pointer that is used to pass the Swimmer object to the
+ * SwimmingTime function. The Swimmer object contains information about the swimmer, such as their
+ * selected speed and swimming time.
+ * 
+ * @return a void pointer, but the actual return statement is unreachable because it is placed after
+ * the pthread_exit() function. Therefore, the return statement will not be executed.
+ */
 void* SwimmingTime (void *arg) 
 {
     Swimmer *swimmer;
@@ -55,6 +84,11 @@ void* SwimmingTime (void *arg)
     return 0;
 }
 
+/**
+ * The function "Lee" prints out information about a swimmer's name and swimming time.
+ * 
+ * @param place The parameter "place" represents the position or rank of a swimmer in a competition.
+ */
 void Lee(int place)
 {
     sem_wait(&sem2);
@@ -67,6 +101,16 @@ void Lee(int place)
     sem_post(&sem1);
 } 
 
+/**
+ * The main function initializes variables, prompts the user for input, creates threads to calculate
+ * swimming times, and waits for the threads to finish before ending.
+ * 
+ * @param argc The parameter `argc` is the number of command-line arguments passed to the program. It
+ * stands for "argument count".
+ * @param argv The `argv` parameter is an array of strings that represents the command-line arguments
+ * passed to the program. Each element of the array is a null-terminated string. The first element
+ * (`argv[0]`) is the name of the program itself.
+ */
 int main(int argc, char *argv[])
 {
 
@@ -134,7 +178,7 @@ int main(int argc, char *argv[])
         pthread_create(&thread[i], NULL, SwimmingTime, (void *)&SwimmerList[i]);
     }
 
-    //Consumidor
+    //Call of the consumer of the program
     for(int j = 0; j < 6; ++j)
     {
         Lee(j + 1);
